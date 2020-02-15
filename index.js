@@ -26,11 +26,11 @@ var con = mysql.createConnection({
   database: "heroku_b83e5acf5a74438"  // ชื่อ Database
 });
 
+var server = app.listen(1234, function () {
+  var host = server.address().address
+  var port = server.address().port
+  console.log("--------start---------");
 
-
-
-app.listen(1234, function() { // สร้าง port ที่ต้องการ Run backend
-  console.log("start");
 });
 
 con.connect(function(error) { // connect database
