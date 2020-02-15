@@ -11,6 +11,10 @@
     "react-dom": "^16.12.0",
     "react-scripts": "3.2.0"
   },
+  "builds": [{
+    "src": "index.js",
+    "use": "@now/node-server"
+  }],
   "scripts": {
     "start": "node index.js"
   },
