@@ -26,7 +26,9 @@ var con = mysql.createConnection({
   database: "heroku_b83e5acf5a74438"  // ชื่อ Database
 });
 
-var server = app.listen(1234, function () {
+var port = process.env.PORT || 1234;
+
+var server = app.listen(port, function () {
   var host = server.address().address
   var port = server.address().port
   console.log("--------start---------");
