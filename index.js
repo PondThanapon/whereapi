@@ -8,58 +8,50 @@ var moment = require("moment");
 app.use(bodyParser.json({ type: "application/json" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-/// สร้างตัวแปรสำหรับเชื่อมต่อกับ Database MySQL
-// var con = mysql.createConnection({
-//   host: "192.168.64.2", 
-//   port: "3306",
-//   user: "root",  //username ของ database
-//   password: "", //empty for window
-//   database: "w_db"  // ชื่อ Database
-// });
-
-
+// สร้างตัวแปรสำหรับเชื่อมต่อกับ Database MySQL
 var con = mysql.createConnection({
-  host: "us-cdbr-iron-east-04.cleardb.net", 
+  host: "192.168.64.2",
   port: "3306",
-  user: "b65a8eeaf2fbcc",  //username ของ database
-  password: "2494f649", //empty for window
-  database: "heroku_b83e5acf5a74438"  // ชื่อ Database
+  user: "root", //username ของ database
+  password: "", //empty for window
+  database: "w_db" // ชื่อ Database
 });
+
+// var con = mysql.createConnection({
+//   host: "us-cdbr-iron-east-04.cleardb.net",
+//   port: "3306",
+//   user: "b65a8eeaf2fbcc",  //username ของ database
+//   password: "2494f649", //empty for window
+//   database: "heroku_b83e5acf5a74438"  // ชื่อ Database
+// });
 
 var port = process.env.PORT || 1234;
 
-var server = app.listen(port, function () {
-  var host = server.address().address
-  var port = server.address().port
+var server = app.listen(port, function() {
+  var host = server.address().address;
+  var port = server.address().port;
   console.log("--------start---------");
-
 });
 
-con.connect(function(error) { // connect database
+con.connect(function(error) {
+  // connect database
   if (error) console.log(error);
   else console.log("connected"); // ขึ้นเมื่อ Connect สำเร็จ
 });
 
-
-
-app.get('/', (req, res) => {
-	res.send(`
+app.get("/", (req, res) => {
+  res.send(`
 		<link href="https://fonts.googleapis.com/css?family=Quicksand:700" rel="stylesheet">
 		<div style="display: flex;flex-direction: column; justify-content: center; align-items: center; height: 100vh; font-family: 'Quicksand', san-serif;">
       <h1>Welcome To Where API </h1>
     </div>
-	`)
-})
+	`);
+});
 
-app.get('/hello', (req, res) => res.json({ message: 'Hello' }))
-
-
-
+app.get("/hello", (req, res) => res.json({ message: "Hello" }));
 
 // Login
 app.get("/user", function(req, res) {
-  
-  
   let VehicleData; // ดึงข้อมูลของพาหนะมาใส่ในตัวแปรนี้
   con.query(`select * from Vehicle`, function(error, rowsVehicle, fields) {
     if (error) console.log(error);
@@ -69,49 +61,52 @@ app.get("/user", function(req, res) {
   });
 
   // สร้างคำสั่ง Sql 3 แบบ
-  // - ค้นหาจาก username password สำหรับใช้ Login 
+  // - ค้นหาจาก username password สำหรับใช้ Login
   // - ค้นหาจาก user_id
   // - ค้นหาทั้งหมด
-  let cmd = res.req.query.username 
+  let cmd = res.req.query.username
     ? `select * from driver where username = ${res.req.query.username} and  password = ${res.req.query.password}`
     : res.req.query.user_id
     ? `select * from driver where user_id = ${res.req.query.user_id}`
     : `select * from driver`;
 
-
   con.query(cmd, function(error, rows, fields) {
     if (error) console.log(error);
     else {
       let temp = JSON.parse(JSON.stringify(rows));
-      if(temp.length > 0) {
+      if (temp.length > 0) {
         con.query(
-        // เก็บ log เมื่อมีการ Login
-          `INSERT INTO LogUser (user_id,datetime) Value (${rows[0].user_id},'${moment().format("YYYY-MM-DD hh:mm:ss")}')`,
+          // เก็บ log เมื่อมีการ Login
+          `INSERT INTO LogUser (user_id,datetime) Value (${
+            rows[0].user_id
+          },'${moment().format("YYYY-MM-DD hh:mm:ss")}')`,
           function(error, rows, fields) {
             if (error) console.log(error);
             else {
-              console.log("LogUser ",rows);
+              console.log("LogUser ", rows);
             }
           }
         );
       }
       // นำข้อมูลของพาหนะที่ผู้้ใช้ Login ใส่ในข้อมูลและส่งกลับไปที่ App ด้วย
-        let result = [];
-        temp.map(item => {
-          if (item.Vehicle_ID == 0) {
-            item.Vehicle_Name = "-";
-            item.Vehicle_Type = "-";
-            result.push(item);
-          } else {
-            let index = VehicleData.findIndex(x => x.Vehicle_ID == item.Vehicle_ID);
-            console.log(VehicleData[index]);
-            item.Vehicle_Name = VehicleData[index].Vehicle_Name || "-";
-            item.Vehicle_Type = VehicleData[index].Vehicle_Type || "-";
-            result.push(item);
-          }
-        });
-        console.log("result :::: ", result);
-        res.send(result);
+      let result = [];
+      temp.map(item => {
+        if (item.Vehicle_ID == 0) {
+          item.Vehicle_Name = "-";
+          item.Vehicle_Type = "-";
+          result.push(item);
+        } else {
+          let index = VehicleData.findIndex(
+            x => x.Vehicle_ID == item.Vehicle_ID
+          );
+          console.log(VehicleData[index]);
+          item.Vehicle_Name = VehicleData[index].Vehicle_Name || "-";
+          item.Vehicle_Type = VehicleData[index].Vehicle_Type || "-";
+          result.push(item);
+        }
+      });
+      console.log("result :::: ", result);
+      res.send(result);
     }
   });
 });
@@ -166,7 +161,6 @@ app.get("/CheckWorkStatus", function(req, res) {
 
 //Start Working เริ่มทำงาน
 app.post("/StartWorking", function(req, res) {
-
   // สร้างเวลาการทำงาน
   con.query(
     `INSERT INTO WorkTime (user_id,Time_In,vehicle_id) Value (${
@@ -229,8 +223,7 @@ app.get("/WorkStatusHistory", function(req, res) {
             ? `${diffDuration.hours()}:${diffDuration.minutes()}`
             : "-";
 
-
-          // หาค่าชื่อและประเภทของรถจาก ID  
+          // หาค่าชื่อและประเภทของรถจาก ID
           let index = VehicleData.findIndex(
             x => x.Vehicle_ID == item.Vehicle_ID
           );
@@ -269,7 +262,9 @@ app.post("/StartBreakDown", function(req, res) {
   );
   // เพิ่มประวัติพาหนะเสียใน Table Breakdown
   con.query(
-    `INSERT INTO Breakdown (Time, Vehicle_ID, status) Value ('${moment().format("YYYY-MM-DD hh:mm:ss")}',${res.req.body.Vehicle_ID},${res.req.body.status})`,
+    `INSERT INTO Breakdown (Time, Vehicle_ID, status) Value ('${moment().format(
+      "YYYY-MM-DD hh:mm:ss"
+    )}',${res.req.body.Vehicle_ID},${res.req.body.status})`,
     function(error, rows, fields) {
       if (error) console.log(error);
       else {
@@ -297,13 +292,13 @@ app.post("/EndBreakDown", function(req, res) {
 //////////////////////////////////////////////////////////////////////////////////////////
 //Update Location อัพเดท Lat long ของพาหนะจากที่ส่ง ID มา
 app.post("/UpdateLocation", function(req, res) {
-  console.log('Vehicle_ID ::: ',res.req.body.Vehicle_ID)
+  console.log("Vehicle_ID ::: ", res.req.body.Vehicle_ID);
   con.query(
     `UPDATE Vehicle SET  lat = '${res.req.body.lat}', lon = '${res.req.body.lon}' WHERE Vehicle_ID = '${res.req.body.Vehicle_ID}'`,
     function(error, rows, fields) {
       if (error) console.log(error);
       else {
-        console.log("====update   ",rows);
+        console.log("====update   ", rows);
         res.send(rows);
       }
     }
@@ -332,23 +327,56 @@ app.get("/busStop", function(req, res) {
 // getBusStopWithSearch ดึงข้อมูลของป้ายรถจากการค้นหา
 app.get("/SearchBusStop", function(req, res) {
   // นำค่าค้นหาใส่ใน Log
+
   con.query(
-    `INSERT INTO LogSearch (SearchText,datetime) Value ('${res.req.query.searchText}','${moment().format("YYYY-MM-DD hh:mm:ss")}')`,
-    function(error, rows, fields) {
+    `select * from LogSearch where SearchText = '${res.req.query.searchText}' `,
+    function(error, resultSearch, fields) {
       if (error) console.log(error);
       else {
-        console.log("LogUser ",rows);
+        console.log("resultSearch :::: ",JSON.parse(JSON.stringify(resultSearch)));
+        let result = JSON.parse(JSON.stringify(resultSearch))
+        if(result.length > 0){
+          console.log('same')
+          con.query(
+            `UPDATE LogSearch SET count = count + 1 where SearchText = '${res.req.query.searchText}'`,
+            function(error, rows, fields) {
+              if (error) console.log(error);
+              else {
+                console.log(rows);
+              }
+            }
+          );
+
+        }
+        else {
+          console.log('new')
+          con.query(
+            `INSERT INTO LogSearch (SearchText,datetime) Value ('${
+              res.req.query.searchText
+            }','${moment().format("YYYY-MM-DD hh:mm:ss")}')`,
+            function(error, rows, fields) {
+              if (error) console.log(error);
+              else {
+                console.log(rows);
+              }
+            }
+          )
+        }
       }
     }
   );
+  
 
+
+
+  
 
   let cmd = "";
   cmd =
     res.req.query.searchText &&
     `select * from tb_busstop where busstop_name LIKE '%${res.req.query.searchText}%'`;
   // ค้นหาป้ายรถจากคำที่ได้รับ
-    con.query(cmd, function(error, rows, fields) {
+  con.query(cmd, function(error, rows, fields) {
     let result = [];
     if (error) console.log(error);
     else {
@@ -361,32 +389,60 @@ app.get("/SearchBusStop", function(req, res) {
         }
         return acc;
       }, []);
-      console.log(newArray);
+      console.log("newArray ::: ", newArray);
+      console.log("newArray length ::: ", newArray.length);
 
-      // ค้นหาสายรถจากป้ายที่เจอทั้งหมด
-      cmd2 = `SELECT * FROM tb_busline WHERE busline_name IN (${newArray})`;
-      console.log(cmd2);
-      con.query(cmd2, function(error, rows2, fields) {
-        if (error) console.log(error);
-        else {
-          console.log("rows2 ::: ", JSON.parse(JSON.stringify(rows2)));
-          result.push(JSON.parse(JSON.stringify(rows2)));
-        }
-      });
+      if (newArray.length > 0) {
+        // ค้นหาสายรถจากป้ายที่เจอทั้งหมด
+        cmd2 = `SELECT * FROM tb_busline WHERE busline_name IN (${newArray})`;
+        console.log(cmd2);
+        con.query(cmd2, function(error, rows2, fields) {
+          if (error) console.log(error);
+          else {
+            console.log("rows2 ::: ", JSON.parse(JSON.stringify(rows2)));
+            result.push(JSON.parse(JSON.stringify(rows2)));
+          }
+        });
 
-       // ดึงข้อมูลป้ายทั้งหมดจากสายที่ค้นหาได้
-      cmd3 = `SELECT * FROM tb_busstop WHERE busline_name IN (${newArray})`;
-      console.log(cmd3);
-      con.query(cmd3, function(error, rows3, fields) {
-        if (error) console.log(error);
-        else {
-          console.log("rows3 ::: ", JSON.parse(JSON.stringify(rows3)));
-          result.push(JSON.parse(JSON.stringify(rows3)));
+        // ดึงข้อมูลป้ายทั้งหมดจากสายที่ค้นหาได้
+        cmd3 = `SELECT * FROM tb_busstop WHERE busline_name IN (${newArray})`;
+        console.log(cmd3);
+        con.query(cmd3, function(error, rows3, fields) {
+          if (error) console.log(error);
+          else {
+            console.log("rows3 ::: ", JSON.parse(JSON.stringify(rows3)));
+            result.push(JSON.parse(JSON.stringify(rows3)));
 
-          console.log(result);
-          res.send(result);
-        }
-      });
+            console.log(result);
+            res.send(result);
+          }
+        });
+      }
+      else {
+        cmd2 = `SELECT * FROM tb_busline WHERE busline_name`;
+        console.log(cmd2);
+        con.query(cmd2, function(error, rows2, fields) {
+          if (error) console.log(error);
+          else {
+            console.log("rows2 ::: ", JSON.parse(JSON.stringify(rows2)));
+            result.push(JSON.parse(JSON.stringify(rows2)));
+          }
+        });
+
+        // ดึงข้อมูลป้ายทั้งหมดจากสายที่ค้นหาได้
+        cmd3 = `SELECT * FROM tb_busstop WHERE busline_name `;
+        console.log(cmd3);
+        con.query(cmd3, function(error, rows3, fields) {
+          if (error) console.log(error);
+          else {
+            console.log("rows3 ::: ", JSON.parse(JSON.stringify(rows3)));
+            result.push(JSON.parse(JSON.stringify(rows3)));
+
+            console.log("result3333 :::", result);
+            res.status(404).send(result);
+          }
+        });
+      }
     }
   });
 });
