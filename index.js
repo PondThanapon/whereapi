@@ -9,21 +9,21 @@ app.use(bodyParser.json({ type: "application/json" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // สร้างตัวแปรสำหรับเชื่อมต่อกับ Database MySQL
-var con = mysql.createConnection({
-  host: "192.168.64.2",
-  port: "3306",
-  user: "root", //username ของ database
-  password: "", //empty for window
-  database: "w_db" // ชื่อ Database
-});
-
 // var con = mysql.createConnection({
-//   host: "us-cdbr-iron-east-04.cleardb.net",
+//   host: "192.168.64.2",
 //   port: "3306",
-//   user: "b65a8eeaf2fbcc",  //username ของ database
-//   password: "2494f649", //empty for window
-//   database: "heroku_b83e5acf5a74438"  // ชื่อ Database
+//   user: "root", //username ของ database
+//   password: "", //empty for window
+//   database: "w_db" // ชื่อ Database
 // });
+
+var con = mysql.createConnection({
+  host: "us-cdbr-iron-east-04.cleardb.net",
+  port: "3306",
+  user: "b65a8eeaf2fbcc",  //username ของ database
+  password: "2494f649", //empty for window
+  database: "heroku_b83e5acf5a74438"  // ชื่อ Database
+});
 
 var port = process.env.PORT || 1234;
 
