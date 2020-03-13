@@ -163,6 +163,16 @@ app.get("/CheckWorkStatus", function(req, res) {
 app.post("/StartWorking", function(req, res) {
   // สร้างเวลาการทำงาน
   con.query(
+    `UPDATE Vehicle SET Active = '1' WHERE Vehicle_ID = ${res.req.body.Vehicle_ID}`,
+    function(error, rows, fields) {
+      if (error) console.log(error);
+      else {
+        console.log(rows);
+      }
+    }
+  );
+
+  con.query(
     `INSERT INTO WorkTime (user_id,Time_In,vehicle_id) Value (${
       res.req.body.user_id
     },'${moment().format("YYYY-MM-DD hh:mm:ss")}',${res.req.body.Vehicle_ID})`,
@@ -178,6 +188,15 @@ app.post("/StartWorking", function(req, res) {
 
 //End Working จบการทำงาน
 app.post("/EndWorking", function(req, res) {
+  con.query(
+    `UPDATE Vehicle SET Active = '0' WHERE Vehicle_ID = ${res.req.body.Vehicle_ID}`,
+    function(error, rows, fields) {
+      if (error) console.log(error);
+      else {
+        console.log(rows);
+      }
+    }
+  );
   // ใส่ข้อมูลเวลาออกงาน และ เปลี่ยนสถานะเป็น 1 = จบงาน
   con.query(
     `UPDATE WorkTime SET Time_Out = '${moment().format(
@@ -328,48 +347,45 @@ app.get("/busStop", function(req, res) {
 app.get("/SearchBusStop", function(req, res) {
   // นำค่าค้นหาใส่ใน Log
 
-  con.query(
-    `select * from LogSearch where SearchText = '${res.req.query.searchText}' `,
-    function(error, resultSearch, fields) {
-      if (error) console.log(error);
-      else {
-        console.log("resultSearch :::: ",JSON.parse(JSON.stringify(resultSearch)));
-        let result = JSON.parse(JSON.stringify(resultSearch))
-        if(result.length > 0){
-          console.log('same')
-          con.query(
-            `UPDATE LogSearch SET count = count + 1 where SearchText = '${res.req.query.searchText}'`,
-            function(error, rows, fields) {
-              if (error) console.log(error);
-              else {
-                console.log(rows);
-              }
-            }
-          );
+  // con.query(
+  //   `select * from LogSearch where SearchText = '${res.req.query.searchText}' `,
+  //   function(error, resultSearch, fields) {
+  //     if (error) console.log(error);
+  //     else {
+  //       console.log("resultSearch :::: ",JSON.parse(JSON.stringify(resultSearch)));
+  //       let result = JSON.parse(JSON.stringify(resultSearch))
+  //       if(result.length > 0){
+  //         console.log('same')
+  //         con.query(
+  //           `UPDATE LogSearch SET count = count + 1 where SearchText = '${res.req.query.searchText}'`,
+  //           function(error, rows, fields) {
+  //             if (error) console.log(error);
+  //             else {
+  //               console.log(rows);
+  //             }
+  //           }
+  //         );
 
-        }
-        else {
-          console.log('new')
-          con.query(
-            `INSERT INTO LogSearch (SearchText,datetime) Value ('${
-              res.req.query.searchText
-            }','${moment().format("YYYY-MM-DD hh:mm:ss")}')`,
-            function(error, rows, fields) {
-              if (error) console.log(error);
-              else {
-                console.log(rows);
-              }
-            }
-          )
-        }
-      }
-    }
-  );
+  //       }
+  //       else {
+  //         console.log('new')
+  //         con.query(
+  //           `INSERT INTO LogSearch (SearchText,datetime) Value ('${
+  //             res.req.query.searchText
+  //           }','${moment().format("YYYY-MM-DD hh:mm:ss")}')`,
+  //           function(error, rows, fields) {
+  //             if (error) console.log(error);
+  //             else {
+  //               console.log(rows);
+  //             }
+  //           }
+  //         )
+  //       }
+  //     }
+  //   }
+  // );
   
 
-
-
-  
 
   let cmd = "";
   cmd =
